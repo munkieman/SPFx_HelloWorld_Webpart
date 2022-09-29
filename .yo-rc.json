@@ -1,0 +1,16 @@
+{
+  "@microsoft/generator-sharepoint": {
+    "plusBeta": false,
+    "isCreatingSolution": true,
+    "version": "1.15.2",
+    "libraryName": "hello-world-webpart",
+    "libraryId": "bebf3d33-604d-4ac7-93ef-edf705a4c206",
+    "environment": "spo",
+    "packageManager": "npm",
+    "solutionName": "HelloWorld_Webpart",
+    "solutionShortDescription": "HelloWorld_Webpart description",
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "componentType": "webpart"
+  }
+}
