@@ -28,6 +28,14 @@ export interface ISPList {
   Id: string;
 }
 
+export interface TermList {
+  value : Terms[];
+}
+
+export interface Terms {
+  Label : string;
+}
+
 export default class HelloWorldWebpartWebPart extends BaseClientSideWebPart<IHelloWorldWebpartWebPartProps> {
 
   private _isDarkTheme: boolean = false;
@@ -44,21 +52,82 @@ export default class HelloWorldWebpartWebPart extends BaseClientSideWebPart<IHel
     let html: string = '';
     items.forEach((item: ISPList) => {
       html += `
-    <ul class="${styles.list}">
-      <li class="${styles.listItem}">
-        <span class="ms-font-l">${item.Title}</span>
-      </li>
-    </ul>`;
+      <ul class="${styles.list}">
+        <li class="${styles.listItem}">
+          <span class="ms-font-l">${item.Title}</span>
+        </li>
+      </ul>`;
     });
   
     const listContainer: Element = this.domElement.querySelector('#spListContainer');
     listContainer.innerHTML = html;
-  }  
+  }
 
   private _renderListAsync(): void {
     this._getListData()
       .then((response) => {
         this._renderList(response.value);
+      });
+  }
+
+  private getTerms(): Promise<TermList>{
+    const url: string = this.context.pageContext.web.absoluteUrl+'/_api/v2.1/termStore/groups/baf98bb4-6102-4d6b-a837-92d4e72636e4/sets/f6c88c73-1bc1-4019-973f-b034ea41e08a/terms/2e21f62b-594b-4a88-aa9f-a1b6aa7e1f62/children?select=id,labels';
+    return this.context.spHttpClient.get(url, SPHttpClient.configurations.v1).then((response: SPHttpClientResponse) => {
+      if (response.ok) {
+        console.log('response');
+        console.log(response);
+        return response.json();
+      } 
+    }); 
+  }
+
+/*
+$.ajax({
+    url: "https://<your-tenant>.sharepoint.com/_vti_bin/TaxonomyInternalService.json/GetChildTermsInTermSetWithPaging",
+    type: "POST",
+    headers: {
+        "accept": "application/json;odata.metadata=minimal",
+        "content-type": "application/json;charset=utf-8",
+        "odata-version": "4.0",
+        "X-RequestDigest": $("#__REQUESTDIGEST").val()
+    },
+    data: JSON.stringify({
+        lcid: 1033,
+        sspId: "guid-here", //Term store ID
+        guid: "guid-here", //Term set ID
+        includeDeprecated: false,
+        pageLimit: 1000,
+        pagingForward: false,
+        includeCurrentChild: false,
+        currentChildId: "00000000–0000–0000–0000–000000000000",
+        webId: "00000000–0000–0000–0000–000000000000",
+        listId: "00000000–0000–0000–0000–000000000000"
+    }),
+    success: function (data) {
+        console.log("Rejoice, for now you can use REST", data);
+    }
+})
+*/
+
+  private _renderTerms(items: Terms[]): void {
+    let html: string = '';
+    items.forEach((item: Terms) => {
+      html += `
+      <ul class="${styles.list}">
+        <li class="${styles.listItem}">
+          <span class="ms-font-l">label : ${item.Label}</span>
+        </li>
+      </ul>`;
+    });
+  
+    const listContainer: Element = this.domElement.querySelector('#termsContainer');
+    listContainer.innerHTML = html;
+  }
+
+  private _renderTermsAsync(): void {
+    this.getTerms()
+      .then((response) => {
+        this._renderTerms(response.value);
       });
   }
 
@@ -77,9 +146,11 @@ export default class HelloWorldWebpartWebPart extends BaseClientSideWebPart<IHel
         <div>Loading from: <strong>${escape(this.context.pageContext.web.title)}</strong></div>
       </div>
       <div id="spListContainer" />
+      <div id="termsContainer" />
     </section>`;
     
     this._renderListAsync();
+    this._renderTermsAsync();
   }
 
   protected onInit(): Promise<void> {
